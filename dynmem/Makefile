@@ -7,3 +7,6 @@ libdynmem.so: dynmem.o
 
 dynmem.o: dynmem.c dynmem.h
 	$(CC) -c -fPIC dynmem.c -o dynmem.o
+
+clean:
+	rm dynmem.o libdynmem.so
