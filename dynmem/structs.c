@@ -28,7 +28,15 @@ area initializeArea(size_t size)
 
 void divideBlock(void* ptr, size_t size)
 {
+    block* ptr1 = (block*) ptr;
+    
+    block b = initializeBlock(ptr1->size - size, TRUE);
+    b->prev = ptr1;
+    b->next = ptr1->next;
 
+    //ptr1->next->prev = *b;
+    ptr1->next = &b;
+    ptr1->size = size;
 }
 
 
