@@ -1,9 +1,10 @@
 CC=gcc
 INCLUDE=-I dynmem/
 LIBS=-L dynmem/ -Wl,-rpath=dynmem/ -ldynmem
+CFLAGS= -std=c99
+FLAGS= $(LIBS) $(INCLUDE) $(CFLAGS)
 
-default: dynmem test
-	$(CC) test.c $(LIBS) $(INCLUDE) -o test
+all: dynmem test
 
 .PHONY: dynmem clean
 
@@ -11,7 +12,7 @@ dynmem:
 	cd dynmem; $(MAKE)
 
 test: test.c
-	$(CC) test.c $(LIBS) $(INCLUDE) -o test
+	$(CC) test.c $(FLAGS) -o test
 
 clean: 
 	rm test; \
