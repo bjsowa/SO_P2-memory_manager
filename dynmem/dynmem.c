@@ -6,6 +6,15 @@
 #include "dynmem.h"
 #include "structs.h"
 
+void showAddress(void* ptr)
+{
+	unsigned long int add = (unsigned long int)ptr;
+	unsigned long int page = add >> 12;
+	unsigned long int offset = add % 4096;
+	printf("page: %lu\n", page);
+	printf("offset: %lu\n", offset); 
+}
+
 
 void* malloc(size_t size)
 {
@@ -33,6 +42,7 @@ void* malloc(size_t size)
 		return ptr + areaSize + blockSize;
 	}	
 	else {
+		//showAddress(dest);
 		divideBlock(dest, size);
 
 		void* ptr = (void*) dest;

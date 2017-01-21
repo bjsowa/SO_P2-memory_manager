@@ -16,9 +16,8 @@ int main()
 {
 	void* x = malloc(5 * sizeof(int));
 	showAddress(x);
-	void* y = malloc(5 * sizeof(int));
+	void* y = malloc(1000 * sizeof(int));
 	showAddress(y);
-
-	free1(x);
-	free1(y);
+	void* z = malloc(5 * sizeof(int));
+	showAddress(z);
 }

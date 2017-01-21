@@ -29,7 +29,8 @@ area initializeArea(size_t size)
 void divideBlock(void* ptr, size_t size)
 {
     block* fullBlock = (block*) ptr;
-    if( ((ssize_t) fullBlock->size - size - (ssize_t) blockSize) < 1 )
+    fullBlock->size *= -1;
+    if( fullBlock->size - (ssize_t) size - (ssize_t) blockSize < 1 )
         return;
 
     block freeBlock = initializeBlock(fullBlock->size - size - blockSize, true);
@@ -58,7 +59,7 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		block b = initializeBlock(bsize,false);
 		*blockPlace = b;
 
-		b = initializeBlock(freeBlockSize,true);
+		b = initializeBlock(freeBlockSize - blockSize,true);
 		block* freeBlockPlace = (block*) (ptr + areaSize + blockSize + bsize);
 		*freeBlockPlace = b;
 
