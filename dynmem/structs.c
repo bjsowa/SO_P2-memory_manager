@@ -28,16 +28,19 @@ area initializeArea(size_t size)
 
 void divideBlock(void* ptr, size_t size)
 {
-    block* ptr1 = (block*) ptr;
+    block* fullBlock = (block*) ptr;
     
-    block b = initializeBlock(ptr1->size - size - blockSize, TRUE);
-    b.prev = ptr1;
-    b.next = ptr1->next;
+    block freeBlock = initializeBlock(fullBlock->size - size - blockSize, true);
+    block* freeSpace = (block*) (ptr + blockSize + size);
+    *freeSpace = freeBlock;
 
-    if(ptr1->next != NULL)
-        ptr1->next->prev = &b;
-    ptr1->next = &b;
-    ptr1->size = size;
+    freeSpace->prev = fullBlock;
+    freeSpace->next = fullBlock->next;
+
+    if(fullBlock->next != NULL)
+        fullBlock->next->prev = freeSpace;
+    fullBlock->next = freeSpace;
+    fullBlock->size = size;
 }
 
 void createArea(void* ptr, size_t asize, size_t bsize)
