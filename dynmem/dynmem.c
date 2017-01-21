@@ -10,8 +10,7 @@
 void* malloc(size_t size)
 {
 	size_t pageSize = (size_t)getpagesize();
-	// printf("blockSize: %d\n", (int)blockSize);
-	// printf("areaSize: %d\n", (int)areaSize);
+
 	printf("size to allocate: %d\n", (int)size);
 
 	block* dest = sfree(size);
@@ -61,5 +60,5 @@ void free1(void* ptr)
 	ptr -= blockSize;
 	block* ptr1 = (block*)ptr;
 	
-	ptr1->free = true;
+	ptr1->size *= -1;
 }

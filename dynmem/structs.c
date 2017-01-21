@@ -9,13 +9,21 @@
 area* firstArea = NULL;
 area* lastArea = NULL;
 
-block createBlock(size_t size)
+block initializeBlock(size_t size, bool free)
 {
 	block b;
 	b.prev = NULL;
 	b.next = NULL;
-	b.size = size;
+	b.size = free ? -1*(ssize_t)size : size;
 	return b;
+}
+
+area initializeArea(size_t size)
+{
+	area a;
+	a.prev = lastArea;
+	a.next = NULL;
+	return a;
 }
 
 void divideBlock(void* ptr, size_t size)
@@ -26,30 +34,30 @@ void divideBlock(void* ptr, size_t size)
 
 void createArea(void* ptr, size_t asize, size_t bsize)
 {
-	area a;
-	a.prev = lastArea;
-	a.next = NULL;
-	a.size = asize;
+	area a = initializeArea(asize);
 	
 	area* ptr1 = (area*) ptr;
 	*ptr1 = a;
 
 	block* ptr2 = (block*) (ptr1 + 1);
-	block b = createBlock(bsize);
-	b.free = false;
-	*ptr2 = b;
-	ptr1->firstBlock = ptr2;
-
 	size_t freeBlockSize = asize - areaSize - blockSize - bsize;
 	if( freeBlockSize > blockSize ){
-		block b1 = createBlock(freeBlockSize);
-		b1.free = true;
+		block b = initializeBlock(bsize,false);
+		*ptr2 = b;
+
+		b = initializeBlock(freeBlockSize,true);
 		block* ptr3 = (block*) (ptr + areaSize + blockSize + bsize);
-		*ptr3 = b1;
+		*ptr3 = b;
 
 		ptr2->next = ptr3;
 		ptr3->prev = ptr2;
 	}
+	else {
+		block b = initializeBlock(asize - areaSize,false);
+		*ptr2 = b;
+	}
+
+	ptr1->firstBlock = ptr2;
 
 	if( lastArea == NULL ){
 		firstArea = ptr1;
@@ -62,7 +70,6 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 	}
 }
 
-//searches for a free block of at least given size
 block* sfree(size_t size)
 {
 	area* currentArea = firstArea;
@@ -71,7 +78,7 @@ block* sfree(size_t size)
 		block* currentBlock = currentArea->firstBlock;
 		while( currentBlock != NULL )
 		{
-			if( currentBlock->free && currentBlock->size >= size )
+			if( currentBlock->size <= -1 * (ssize_t)size )
 				return currentBlock;
 			currentBlock = currentBlock->next;
 		}
