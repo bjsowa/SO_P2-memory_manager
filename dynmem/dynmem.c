@@ -46,22 +46,23 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 	a.size = asize;
 	
 	area* ptr1 = (area*) ptr;
-	ptr1[0] = a;
+	*ptr1 = a;
 
 	block* ptr2 = (block*) (ptr1 + 1);
 	block b = createBlock(bsize);
 	b.free = false;
-	ptr2[0] = b;
+	*ptr2 = b;
+	ptr1->firstBlock = ptr2;
 
 	size_t freeBlockSize = asize - areaSize - blockSize - bsize;
 	if( freeBlockSize > blockSize ){
 		block b1 = createBlock(freeBlockSize);
 		b1.free = true;
 		block* ptr3 = (block*) (ptr + areaSize + blockSize + bsize);
-		ptr3[0] = b1;
+		*ptr3 = b1;
 
-		ptr2[0].next = ptr3;
-		ptr3[0].prev = ptr2;
+		ptr2->next = ptr3;
+		ptr3->prev = ptr2;
 	}
 
 	if( lastArea == NULL ){
@@ -75,10 +76,30 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 	}
 }
 
+// void showAddress(void* ptr)
+// {
+// 	unsigned long int add = (unsigned long int)ptr;
+// 	unsigned long int page = add >> 12;
+// 	unsigned long int offset = add % 4096;
+// 	printf("page: %lu\n", page);
+// 	printf("offset: %lu\n", offset); 
+// }
 
 //searches for a free block of at least given size
 block* sfree(size_t size)
 {
+	area* currentArea = firstArea;
+	while( currentArea != NULL )
+	{
+		block* currentBlock = currentArea->firstBlock;
+		while( currentBlock != NULL )
+		{
+			if( currentBlock->free && currentBlock->size >= size )
+				return currentBlock;
+			currentBlock = currentBlock->next;
+		}
+		currentArea = currentArea->next;
+	}
 	return NULL;
 }
 
@@ -108,6 +129,12 @@ void* malloc(size_t size)
 
 		return ptr + areaSize + blockSize;
 	}	
+	else {
+		//divideBlock(dest, size);
+
+		void* ptr = (void*) dest;
+		return ptr + blockSize;
+	}
 }
 
 void* calloc(size_t count, size_t size)
@@ -125,11 +152,10 @@ int posix_memalign(void** memptr, size_t alignment, size_t size)
 	return 0;
 }
 
-void free(void* ptr)
+void free1(void* ptr)
 {
 	ptr -= blockSize;
 	block* ptr1 = (block*)ptr;
-	block b = ptr1[0];
-
-
+	
+	ptr1->free = true;
 }

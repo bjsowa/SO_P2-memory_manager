@@ -18,4 +18,7 @@ int main()
 	showAddress(x);
 	void* y = malloc(5 * sizeof(int));
 	showAddress(y);
+
+	free1(x);
+	free1(y);
 }
