@@ -1,4 +1,5 @@
 test
 dynmem.o
+structs.o
 libdynmem.so
 .directory

@@ -4,110 +4,14 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include "dynmem.h"
+#include "structs.h"
 
-typedef struct block block;
-typedef struct area area;
-
-struct block {
-	block* prev;
-	block* next;
-	size_t size;
-	bool free;
-};
-
-struct area {
-	area* prev;
-	area* next;
-	block* firstBlock;
-	size_t size;
-};
-
-const size_t blockSize = sizeof(block);
-const size_t areaSize = sizeof(area);
-
-area* firstArea = NULL;
-area* lastArea = NULL;
-
-block createBlock(size_t size)
-{
-	block b;
-	b.prev = NULL;
-	b.next = NULL;
-	b.size = size;
-	return b;
-}
-
-
-void createArea(void* ptr, size_t asize, size_t bsize)
-{
-	area a;
-	a.prev = lastArea;
-	a.next = NULL;
-	a.size = asize;
-	
-	area* ptr1 = (area*) ptr;
-	*ptr1 = a;
-
-	block* ptr2 = (block*) (ptr1 + 1);
-	block b = createBlock(bsize);
-	b.free = false;
-	*ptr2 = b;
-	ptr1->firstBlock = ptr2;
-
-	size_t freeBlockSize = asize - areaSize - blockSize - bsize;
-	if( freeBlockSize > blockSize ){
-		block b1 = createBlock(freeBlockSize);
-		b1.free = true;
-		block* ptr3 = (block*) (ptr + areaSize + blockSize + bsize);
-		*ptr3 = b1;
-
-		ptr2->next = ptr3;
-		ptr3->prev = ptr2;
-	}
-
-	if( lastArea == NULL ){
-		firstArea = ptr1;
-		lastArea = ptr1;
-	}
-	else {
-		lastArea->next = ptr1;
-		ptr1->prev = lastArea;
-		lastArea = ptr1;
-	}
-}
-
-// void showAddress(void* ptr)
-// {
-// 	unsigned long int add = (unsigned long int)ptr;
-// 	unsigned long int page = add >> 12;
-// 	unsigned long int offset = add % 4096;
-// 	printf("page: %lu\n", page);
-// 	printf("offset: %lu\n", offset); 
-// }
-
-//searches for a free block of at least given size
-block* sfree(size_t size)
-{
-	area* currentArea = firstArea;
-	while( currentArea != NULL )
-	{
-		block* currentBlock = currentArea->firstBlock;
-		while( currentBlock != NULL )
-		{
-			if( currentBlock->free && currentBlock->size >= size )
-				return currentBlock;
-			currentBlock = currentBlock->next;
-		}
-		currentArea = currentArea->next;
-	}
-	return NULL;
-}
 
 void* malloc(size_t size)
 {
 	size_t pageSize = (size_t)getpagesize();
-	printf("blockSize: %d\n", (int)blockSize);
-	printf("areaSize: %d\n", (int)areaSize);
+	// printf("blockSize: %d\n", (int)blockSize);
+	// printf("areaSize: %d\n", (int)areaSize);
 	printf("size to allocate: %d\n", (int)size);
 
 	block* dest = sfree(size);
@@ -130,7 +34,7 @@ void* malloc(size_t size)
 		return ptr + areaSize + blockSize;
 	}	
 	else {
-		//divideBlock(dest, size);
+		divideBlock(dest, size);
 
 		void* ptr = (void*) dest;
 		return ptr + blockSize;
