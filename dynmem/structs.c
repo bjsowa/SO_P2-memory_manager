@@ -59,11 +59,11 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		*blockPlace = b;
 
 		b = initializeBlock(freeBlockSize,true);
-		block* freeBlockSpace = (block*) (ptr + areaSize + blockSize + bsize);
-		*freeBlockSpace = b;
+		block* freeBlockPlace = (block*) (ptr + areaSize + blockSize + bsize);
+		*freeBlockPlace = b;
 
-		blockPlace->next = freeBlockSpace;
-		freeBlockSpace->prev = blockPlace;
+		blockPlace->next = freeBlockPlace;
+		freeBlockPlace->prev = blockPlace;
 	}
 	else {
 		block b = initializeBlock(asize - areaSize,false);
