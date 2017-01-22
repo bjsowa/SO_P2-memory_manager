@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include "structs.h"
+#include "stats.h"
 
 //wskaźniki na pierwszy i ostatni obszar 
 area* firstArea = NULL;
@@ -82,6 +83,8 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		areaPlace->prev = lastArea;
 		lastArea = areaPlace;
 	}
+
+	++areasCreated;
 }
 
 block* sfree(size_t size)
