@@ -14,7 +14,7 @@ int main()
 	void* z = malloc(5 * sizeof(int));
 	showAddress(z);
 
-	y = realloc(y,20425);
+	y = realloc(y,19999);
 
 	printStats();
 	printBlocks();

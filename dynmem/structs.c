@@ -31,11 +31,20 @@ void divideBlock(void* ptr, size_t size)
 {
     block* fullBlock = (block*) ptr;
     fullBlock->size = abs(fullBlock->size);
-    if( fullBlock->size - (ssize_t) size - (ssize_t) blockSize < 1 )
-        return;
 
-    block freeBlock = initializeBlock(fullBlock->size - size - blockSize, true);
+    block freeBlock;
     block* freeSpace = (block*) (ptr + blockSize + size);
+
+    if( fullBlock->size - size < blockSize + 1 ){
+        if( fullBlock->next != NULL && fullBlock->next->size < 0 ){
+        	printf("%d\n", (int)(abs(fullBlock->next->size) + fullBlock->size - size));
+        	freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
+        	fullBlock->next = fullBlock->next->next;
+        }
+        else return;
+    }
+    else freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
+
     *freeSpace = freeBlock;
 
     freeSpace->prev = fullBlock;

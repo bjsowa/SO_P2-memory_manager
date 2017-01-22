@@ -22,6 +22,7 @@ static const size_t blockSize = sizeof(block);
 static const size_t areaSize = sizeof(area);
 
 //dzieli blok na dwa bloki, z których pierwszy ma rozmiar size a drugi dopełnia oryginalny
+//jeśli blok za drugim blokiem jest wolny to scala te dwa bloki
 //jeśli to nie jest możliwe to zostawia oryginalny blok
 void divideBlock(void* ptr, size_t size);
 
