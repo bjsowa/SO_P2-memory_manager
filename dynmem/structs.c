@@ -3,10 +3,10 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
 #include "structs.h"
 #include "stats.h"
 
-//wskaźniki na pierwszy i ostatni obszar 
 area* firstArea = NULL;
 area* lastArea = NULL;
 
@@ -30,7 +30,7 @@ area initializeArea(size_t size)
 void divideBlock(void* ptr, size_t size)
 {
     block* fullBlock = (block*) ptr;
-    fullBlock->size *= -1;
+    fullBlock->size = abs(fullBlock->size);
     if( fullBlock->size - (ssize_t) size - (ssize_t) blockSize < 1 )
         return;
 
@@ -45,6 +45,21 @@ void divideBlock(void* ptr, size_t size)
         fullBlock->next->prev = freeSpace;
     fullBlock->next = freeSpace;
     fullBlock->size = size;
+
+    mergeFreeBlocks(freeSpace);
+}
+
+void mergeFreeBlocks(block* ptr)
+{
+	if( ptr->prev != NULL && ptr->prev->size < 0 ){
+		ptr->prev->next = ptr->next;
+		ptr->prev->size += ptr->size - (ssize_t)blockSize;
+		ptr = ptr->prev;
+	}
+	if( ptr->next != NULL && ptr->next->size < 0 ){
+		ptr->size += ptr->next->size - (ssize_t)blockSize;
+		ptr->next = ptr->next->next;
+	}
 }
 
 void createArea(void* ptr, size_t asize, size_t bsize)

@@ -21,8 +21,14 @@ struct area {
 static const size_t blockSize = sizeof(block);
 static const size_t areaSize = sizeof(area);
 
-
+//dzieli blok na dwa bloki, z których pierwszy ma rozmiar size a drugi dopełnia oryginalny
+//jeśli to nie jest możliwe to zostawia oryginalny blok
 void divideBlock(void* ptr, size_t size);
+
+//bierze wolny blok wskazany przez ptr i scala go z poprzednim i następnym jeśli są wolne
+//do zrobienia: munmap jeśli zostaje jeden blok w obszarze, a ilość wolnego miejsca
+//w pozostałych obszarach przekracza ustalony próg
+void mergeFreeBlocks(block* ptr);
 
 //tworzy strukturę obszaru i umieszcza go na początku obszaru wskazanego przez ptr
 //za strukturą umieszcza blok długości co najmniej bsize, z tym że
@@ -34,5 +40,9 @@ void createArea(void* ptr, size_t asize, size_t bsize);
 //przeszukuje obszary w poszukiwaniu wolnego bloku długości co najmniej size
 //jeśli taki istnieje, zwraca wskaźnik na niego, wpp zwraca NULL
 block* sfree(size_t size);
+
+//wskaźniki na pierwszy i ostatni obszar 
+extern area* firstArea;
+extern area* lastArea;
 
 #endif

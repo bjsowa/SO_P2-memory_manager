@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS= -fPIC
+FLAGS= -fPIC -lm
 
 default: libdynmem.so
 

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
 #include "dynmem.h"
 #include "structs.h"
 
@@ -11,7 +12,7 @@ void* malloc(size_t size)
 {
 	size_t pageSize = (size_t)getpagesize();
 
-	printf("size to allocate: %d\n", (int)size);
+	//printf("size to allocate: %d\n", (int)size);
 
 	block* dest = sfree(size);
 
@@ -26,14 +27,13 @@ void* malloc(size_t size)
 			return NULL;
 		}
 
-		printf("size allocated: %d\n", (int)size1);
+		//printf("size allocated: %d\n", (int)size1);
 
 		createArea(ptr, size1, size);
 
 		return ptr + areaSize + blockSize;
 	}	
 	else {
-		showAddress(dest);
 		divideBlock(dest, size);
 
 		void* ptr = (void*) dest;
@@ -48,7 +48,25 @@ void* calloc(size_t count, size_t size)
 
 void* realloc(void* ptr, size_t size)
 {
-	return NULL;
+	block* blockPlace = (block*)(ptr - blockSize);
+
+	if( size < blockPlace->size ){
+		divideBlock(blockPlace,size);
+		return ptr;
+	}
+	else if( size > blockPlace->size ){
+		if( blockPlace->next != NULL && blockPlace->next->size < 0 
+			&& blockPlace->size - blockPlace->next->size + blockSize >= size ){
+
+			blockPlace->size += blockSize - blockPlace->next->size;
+			blockPlace->next = blockPlace->next->next;
+			divideBlock(blockPlace,size);
+
+			return blockPlace;
+		}
+	}
+
+	return ptr;
 }
 
 int posix_memalign(void** memptr, size_t alignment, size_t size)
@@ -62,4 +80,5 @@ void free1(void* ptr)
 	block* ptr1 = (block*)ptr;
 	
 	ptr1->size *= -1;
+	mergeFreeBlocks(ptr1);
 }

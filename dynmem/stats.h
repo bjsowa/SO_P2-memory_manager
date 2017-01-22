@@ -3,6 +3,8 @@
 
 void showAddress(void* ptr);
 void printStats();
+void printBlocks();
+
 extern int areasCreated;
 
 #endif

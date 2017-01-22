@@ -17,7 +17,7 @@ void* realloc(void *ptr, size_t size);
 //to do
 int posix_memalign(void **memptr, size_t alignment, size_t size);
 
-//to do
+//zmienia typ bloku na wolny i scala go z sąsiednimi wolnymi blokami (zob. mergeFreeBlocks)
 void free1(void *ptr);
 
 #endif
