@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "dynmem.h"
 #include "structs.h"
@@ -64,9 +65,13 @@ void* realloc(void* ptr, size_t size)
 
 			return blockPlace;
 		}
-		else{
-			
-		}
+
+		size_t oldSize = abs(blockPlace->size);
+		free1(ptr);
+		void* newBlock = malloc(size);
+		memmove(newBlock, ptr, oldSize);
+
+		return newBlock;
 	}
 
 	return ptr;
