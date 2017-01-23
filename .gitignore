@@ -4,3 +4,5 @@ structs.o
 stats.o
 libdynmem.so
 .directory
+P2.sublime-project
+P2.sublime-workspace
