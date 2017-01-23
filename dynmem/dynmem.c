@@ -11,6 +11,7 @@
 
 void* malloc(size_t size)
 {
+	printf("123\n");
 	size_t pageSize = (size_t)getpagesize();
 
 	//printf("size to allocate: %d\n", (int)size);
@@ -67,7 +68,7 @@ void* realloc(void* ptr, size_t size)
 		}
 
 		size_t oldSize = abs(blockPlace->size);
-		free1(ptr);
+		free(ptr);
 		void* newBlock = malloc(size);
 		memmove(newBlock, ptr, oldSize);
 
@@ -82,7 +83,7 @@ int posix_memalign(void** memptr, size_t alignment, size_t size)
 	return 0;
 }
 
-void free1(void* ptr)
+void free(void* ptr)
 {
 	ptr -= blockSize;
 	block* ptr1 = (block*)ptr;
