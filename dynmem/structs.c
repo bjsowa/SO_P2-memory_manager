@@ -64,10 +64,12 @@ void mergeFreeBlocks(block* ptr)
 		ptr->prev->next = ptr->next;
 		ptr->prev->size += ptr->size - (ssize_t)blockSize;
 		ptr = ptr->prev;
+		if( ptr->next != NULL ) ptr->next->prev = ptr;
 	}
 	if( ptr->next != NULL && ptr->next->size < 0 ){
 		ptr->size += ptr->next->size - (ssize_t)blockSize;
 		ptr->next = ptr->next->next;
+		if( ptr->next != NULL ) ptr->next->prev = ptr;
 	}
 }
 

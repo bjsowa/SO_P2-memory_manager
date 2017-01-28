@@ -11,7 +11,6 @@
 
 void* malloc(size_t size)
 {
-	printf("123\n");
 	size_t pageSize = (size_t)getpagesize();
 
 	//printf("size to allocate: %d\n", (int)size);
