@@ -78,37 +78,35 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 {
 	area a = initializeArea(asize);
 	
-	area* areaPlace = (area*) ptr;
-	*areaPlace = a;
+	area* newArea = (area*) ptr;
+	*newArea = a;
 
-	block* blockPlace = (block*) (areaPlace + 1);
+	block* fullBlock = (block*) (newArea + 1);
 	size_t freeBlockSize = asize - areaSize - blockSize - bsize;
 	if( freeBlockSize > blockSize ){
-		block b = initializeBlock(bsize,false);
-		*blockPlace = b;
+		*fullBlock = initializeBlock(bsize,false);
 
-		b = initializeBlock(freeBlockSize - blockSize,true);
-		block* freeBlockPlace = (block*) (ptr + areaSize + blockSize + bsize);
-		*freeBlockPlace = b;
+		block* freeBlock = (block*) (ptr + areaSize + blockSize + bsize);
+		*freeBlock = initializeBlock(freeBlockSize - blockSize,true);
 
-		blockPlace->next = freeBlockPlace;
-		freeBlockPlace->prev = blockPlace;
+		fullBlock->next = freeBlock;
+		freeBlock->prev = fullBlock;
+
+		freeSpace += freeBlock->size;
 	}
-	else {
-		block b = initializeBlock(asize - areaSize,false);
-		*blockPlace = b;
-	}
+	else 
+		*fullBlock = initializeBlock(asize - areaSize - blockSize,false);
 
-	areaPlace->firstBlock = blockPlace;
+	newArea->firstBlock = fullBlock;
 
 	if( lastArea == NULL ){
-		firstArea = areaPlace;
-		lastArea = areaPlace;
+		firstArea = newArea;
+		lastArea = newArea;
 	}
 	else {
-		lastArea->next = areaPlace;
-		areaPlace->prev = lastArea;
-		lastArea = areaPlace;
+		lastArea->next = newArea;
+		newArea->prev = lastArea;
+		lastArea = newArea;
 	}
 
 	++areasCreated;
