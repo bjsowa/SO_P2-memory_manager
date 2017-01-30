@@ -55,6 +55,9 @@ void* realloc(void* ptr, size_t size)
 	block* blockPlace = (block*)(ptr - blockSize);
 
 	if( size < blockPlace->size ){
+		takenSpace -= blockPlace->size; //STAT
+		freeSpace += blockPlace->size; //STAT
+
 		divideBlock(blockPlace,size);
 		return ptr;
 	}
@@ -95,10 +98,13 @@ void free(void* ptr)
 	ptr -= blockSize;
 	block* freeBlock = (block*)ptr;
 	
+	takenSpace -= freeBlock->size; //STAT
+	freeSpace += freeBlock->size; //STAT
+
 	freeBlock->size *= -1;
 	freeBlock = mergeFreeBlocks(freeBlock);
 
-	if( freeBlock->prev == NULL && freeBlock->next == NULL && freeSpace - freeBlock->size >= UNMAP_AREA_COND ){
+	if( freeBlock->prev == NULL && freeBlock->next == NULL && freeSpace + freeBlock->size >= UNMAP_AREA_COND ){
 		uintptr_t pageSize = (uintptr_t)getpagesize();
 		uintptr_t ptr1 = (uintptr_t)freeBlock;
 		area* freeArea = (area*)(ptr1 - (ptr1 % pageSize));
@@ -112,7 +118,7 @@ void free(void* ptr)
 			lastArea->next = NULL;
 		}
 
-
+		freeSpace -= -freeBlock->size;
 
 		if( munmap(freeArea, freeArea->size) == -1) {
 			perror("munmap error");

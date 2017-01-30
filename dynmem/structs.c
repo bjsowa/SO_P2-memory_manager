@@ -79,11 +79,15 @@ void* mergeFreeBlocks(block* ptr)
 		ptr->prev->size += ptr->size - (ssize_t)blockSize;
 		ptr = ptr->prev;
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
+
+		freeSpace += blockSize; //STAT
 	}
 	if( ptr->next != NULL && ptr->next->size < 0 ){
 		ptr->size += ptr->next->size - (ssize_t)blockSize;
 		ptr->next = ptr->next->next;
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
+
+		freeSpace += blockSize; //STAT
 	}
 	return ptr;
 }
