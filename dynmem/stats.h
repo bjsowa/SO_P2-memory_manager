@@ -6,5 +6,6 @@ void printStats();
 void printBlocks();
 
 extern int areasCreated;
+extern long freeSpace;
 
 #endif

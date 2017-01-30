@@ -4,6 +4,7 @@
 #include "structs.h"
 
 int areasCreated = 0;
+long freeSpace = 0;
 
 void showAddress(void* ptr)
 {

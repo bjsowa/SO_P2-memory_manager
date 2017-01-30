@@ -1,19 +1,22 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string.h>
 
 #include "dynmem.h"
 #include "structs.h"
+#include "stats.h"
 
 void* malloc(size_t size)
 {
-	size_t pageSize = (size_t)getpagesize();
+	if( size == 0 ) return NULL;
 
 	size += (alignment - (size % alignment)) % alignment;
 
+	size_t pageSize = (size_t)getpagesize();
 	block* dest = sfree(size);
 
 	if( dest == NULL ){
@@ -23,7 +26,7 @@ void* malloc(size_t size)
 
 		void* ptr = mmap(NULL, size1, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		if( ptr == MAP_FAILED ){
-			perror("mmap error\n");
+			perror("mmap error");
 			return NULL;
 		}
 
@@ -46,9 +49,10 @@ void* calloc(size_t count, size_t size)
 
 void* realloc(void* ptr, size_t size)
 {
-	block* blockPlace = (block*)(ptr - blockSize);
-
+	if( size == 0 ) return NULL;
 	size += (alignment - (size % alignment)) % alignment;
+
+	block* blockPlace = (block*)(ptr - blockSize);
 
 	if( size < blockPlace->size ){
 		divideBlock(blockPlace,size);
@@ -84,8 +88,27 @@ int posix_memalign(void** memptr, size_t alignment, size_t size)
 void free(void* ptr)
 {
 	ptr -= blockSize;
-	block* ptr1 = (block*)ptr;
+	block* freeBlock = (block*)ptr;
 	
-	ptr1->size *= -1;
-	mergeFreeBlocks(ptr1);
+	freeBlock->size *= -1;
+	freeBlock = mergeFreeBlocks(freeBlock);
+
+	if( freeBlock->prev == NULL && freeBlock->next == NULL && freeSpace - freeBlock->size >= UNMAP_AREA_COND ){
+		uintptr_t pageSize = (uintptr_t)getpagesize();
+		uintptr_t ptr1 = (uintptr_t)freeBlock;
+		area* freeArea = (area*)(ptr1 - (ptr1 % pageSize));
+		
+		if( freeArea == firstArea ){
+			firstArea = freeArea->next;
+			firstArea->prev = NULL;
+		}
+		else if( freeArea == lastArea ){
+			lastArea = freeArea->prev;
+			lastArea->next = NULL;
+		}
+
+		if( munmap(freeArea, freeArea->size) == -1) {
+			perror("munmap error");
+		}
+	}
 }

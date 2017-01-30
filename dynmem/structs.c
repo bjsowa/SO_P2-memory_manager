@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -24,6 +25,7 @@ area initializeArea(size_t size)
 	area a;
 	a.prev = lastArea;
 	a.next = NULL;
+	a.size = size;
 	return a;
 }
 
@@ -34,32 +36,29 @@ void divideBlock(void* ptr, size_t size)
 
     if( fullBlock->size == size ) return;
 
-    block freeBlock;
-    block* freeSpace = (block*) (ptr + blockSize + size);
+    block* freeBlock = (block*) (ptr + blockSize + size);
 
     if( fullBlock->size - size < blockSize + 1 ){
         if( fullBlock->next != NULL && fullBlock->next->size < 0 ){
-        	freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
+        	*freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
         	fullBlock->next = fullBlock->next->next;
         }
         else return;
     }
-    else freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
+    else *freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
 
-    *freeSpace = freeBlock;
-
-    freeSpace->prev = fullBlock;
-    freeSpace->next = fullBlock->next;
+    freeBlock->prev = fullBlock;
+    freeBlock->next = fullBlock->next;
 
     if(fullBlock->next != NULL)
-        fullBlock->next->prev = freeSpace;
-    fullBlock->next = freeSpace;
+        fullBlock->next->prev = freeBlock;
+    fullBlock->next = freeBlock;
     fullBlock->size = size;
 
-    mergeFreeBlocks(freeSpace);
+    mergeFreeBlocks(freeBlock);
 }
 
-void mergeFreeBlocks(block* ptr)
+void* mergeFreeBlocks(block* ptr)
 {
 	if( ptr->prev != NULL && ptr->prev->size < 0 ){
 		ptr->prev->next = ptr->next;
@@ -72,6 +71,7 @@ void mergeFreeBlocks(block* ptr)
 		ptr->next = ptr->next->next;
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
 	}
+	return ptr;
 }
 
 void createArea(void* ptr, size_t asize, size_t bsize)

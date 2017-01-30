@@ -3,7 +3,11 @@
 
 #include <bits/wordsize.h>
 
+//zwracane adresy muszą być wielokrotnością najdłuższego słowa
 #define ALIGNMENT __WORDSIZE/8
+
+//ile minimalnie musi zostać wolnego miejsca, żeby móc usunąć obszar
+#define UNMAP_AREA_COND 5*(1<<12) //5 pełnych stron
 
 typedef struct block block;
 typedef struct area area;
@@ -36,7 +40,7 @@ void divideBlock(void* ptr, size_t size);
 //bierze wolny blok wskazany przez ptr i scala go z poprzednim i następnym jeśli są wolne
 //do zrobienia: munmap jeśli zostaje jeden blok w obszarze, a ilość wolnego miejsca
 //w pozostałych obszarach przekracza ustalony próg
-void mergeFreeBlocks(block* ptr);
+void* mergeFreeBlocks(block* ptr);
 
 //tworzy strukturę obszaru i umieszcza go na początku obszaru wskazanego przez ptr
 //za strukturą umieszcza blok długości co najmniej bsize, z tym że
