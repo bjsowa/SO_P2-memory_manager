@@ -48,6 +48,8 @@ void* realloc(void* ptr, size_t size)
 {
 	block* blockPlace = (block*)(ptr - blockSize);
 
+	size += (alignment - (size % alignment)) % alignment;
+
 	if( size < blockPlace->size ){
 		divideBlock(blockPlace,size);
 		return ptr;
