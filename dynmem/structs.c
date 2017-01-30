@@ -47,6 +47,7 @@ void divideBlock(void* ptr, size_t size)
         	*freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
         	fullBlock->next = fullBlock->next->next;
         	freeSpace -= size; //STAT
+            	++blocksDivided; //STAT
         }
         else {
         	takenSpace += fullBlock->size; //STAT
@@ -57,6 +58,7 @@ void divideBlock(void* ptr, size_t size)
     else {
     	*freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
     	freeSpace -= size + blockSize; //STAT
+        ++blocksDivided; //STAT
     }
 
     takenSpace += size; //STAT
@@ -81,6 +83,7 @@ void* mergeFreeBlocks(block* ptr)
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
 
 		freeSpace += blockSize; //STAT
+        	++blocksMerged; //STAT
 	}
 	if( ptr->next != NULL && ptr->next->size < 0 ){
 		ptr->size += ptr->next->size - (ssize_t)blockSize;
@@ -88,6 +91,7 @@ void* mergeFreeBlocks(block* ptr)
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
 
 		freeSpace += blockSize; //STAT
+        	++blocksMerged; //STAT
 	}
 	return ptr;
 }
