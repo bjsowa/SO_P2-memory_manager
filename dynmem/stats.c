@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "stats.h"
 #include "structs.h"
 
-#define RED_TEXT   "\x1B[31m"
-#define RED_BLINK   "\x1B[5;31m"
-#define GRN_TEXT   "\x1B[32m"
-#define GRN_BLINK   "\x1B[5;32m"
-#define RED   "\x1B[7;31m"
+#define AREA_WIDTH 100
+
+#define RED "\x1B[7;31m"
 #define GRN   "\x1B[7;32m"
 #define BLU   "\x1B[7;34m"
+#define BLK "\x1B[30;40m"
+#define YEL "\x1B[30;48;2;252;127;0m"
 #define RESET "\x1B[0m"
 
 int areasCreated = 0;
@@ -22,11 +23,11 @@ int blocksMerged = 0;
 
 void showAddress(void* ptr)
 {
-	unsigned long int add = (unsigned long int)ptr;
-	unsigned long int page = add >> 12;
-	unsigned long int offset = add % 4096;
-	printf("page: %lu\n", page);
-	printf("offset: %lu\n", offset); 
+	uintptr_t add = (uintptr_t)ptr;
+	uintptr_t page = add >> 12;
+	uintptr_t offset = add % 4096;
+	printf("page: %" PRIuPTR "\n", page);
+	printf("offset: %" PRIuPTR "\n", offset); 
 }
 
 void printStats()
@@ -38,69 +39,138 @@ void printStats()
 	printf("Blocks Divided: %d\n", blocksDivided);       
 }
 
+int numOfDigits(uint64_t n)
+{
+    int cnt = 0;
+    while( n > 0 ){
+        n /= 10;
+        ++cnt;
+    }
+    return cnt;
+}
+
+void printArea(int blocks, uint64_t* blockSizes, bool* free, int* baseLength)
+{
+    int remainingSpace = AREA_WIDTH - blocks + 1;
+    int i;
+    uint64_t sum = 0;
+    for(i = 0; i < blocks; i++){
+        sum += blockSizes[i];
+        remainingSpace -= baseLength[i];
+    }
+
+    int spaces[blocks];
+    double spaceWidth = (double)sum / (double)AREA_WIDTH;
+
+    double sizeSum = 0;
+    int spacesSum = 0;
+    for(i = 0; i < blocks; i++)
+    {
+        sizeSum += (double)blockSizes[i];
+        spacesSum += baseLength[i];
+        if( i != blocks-1 ) spacesSum++;
+
+        double minSpace = (double)spacesSum * spaceWidth;
+
+        if( sizeSum >= minSpace + spaceWidth ){
+            spaces[i] = (sizeSum - minSpace) / spaceWidth;
+            remainingSpace -= spaces[i];
+            spacesSum += spaces[i];
+        }
+        else spaces[i] = 0;
+    }
+
+    spaces[blocks-1] += remainingSpace;
+
+    for(i = 0; i < blocks; i++)
+    {
+        int offset = spaces[i]/2;
+        int rest = spaces[i] - offset;
+
+        printf(RESET);
+        if( free[i] )
+            printf(GRN);
+        else
+            printf(RED);
+
+        while( offset-- ) printf(" ");
+        printf("%" PRIu64 , blockSizes[i]);
+        while( rest-- ) printf(" ");
+
+        if( i != blocks-1 ){
+            printf(RESET);
+            printf(YEL "|");
+        }
+    }
+    printf(RESET "\n");
+}
+
 void printBlocks()
 {
 	int i = 1;
 	area* currentArea = firstArea;
 	while( currentArea != NULL )
 	{
+        char areaStr[30];
+        snprintf(areaStr, 30, "AREA: %d SIZE: %d", i, (int)currentArea->size);
+
+        int offset = strlen(areaStr);
+        offset = (AREA_WIDTH - offset + 1) / 2;
+        int rest = AREA_WIDTH - offset - strlen(areaStr);
+
         printf(BLU);
-        int h=47;
-		while(h--)
-            printf(" ");
-        printf("AREA %d", i);
-        h=47;
-		while(h--)
-            printf(" ");
+        while( offset-- ) printf(" ");
+        printf("%s", areaStr);
+        while( rest-- ) printf(" ");
+
         printf(RESET "\n");
-		int j = 1, spaceForText=100;
+
+
+		int spaceForText = AREA_WIDTH;
         char str[12];
 		block* currentBlock = currentArea->firstBlock;
 
-        int allBlocks = 0;
+        int blocks = 0;
 
         while( currentBlock != NULL ){
                 currentBlock = currentBlock->next;
-                allBlocks++;
+                blocks++;
         }
 
         currentBlock = currentArea->firstBlock;
+        uint64_t blockSizes[blocks];
+        bool free[blocks];
+        int baseLength[blocks];
+        int requiredSpace = blocks - 1;
+        int i;
+        for( i = 0; currentBlock != NULL; i++ )
+        {
+            blockSizes[i] = (uint64_t)abs(currentBlock->size);
+            free[i] = (currentBlock->size < 0) ? true : false;
+            baseLength[i] = numOfDigits(blockSizes[i]);
+            requiredSpace += baseLength[i];
 
-		while( currentBlock != NULL )
-		{
-            printf(RESET);
-			if( currentBlock->size < 0 ){
-				printf(GRN);
-            }
-			else{
-				printf(RED);
-            }
-            snprintf(str, 12, " SIZE: %d", abs(currentBlock->size));
-            printf("%s", str);
-            spaceForText-=strlen(str)+1;
-            h=((100*abs(currentBlock->size))/4096)-allBlocks*strlen(str)-1;
-            if(spaceForText<h)
-                h=spaceForText;
-            while(spaceForText>0 && h>0){
-                printf(" ");
-                --h;
-                --spaceForText;
-            }
-            allBlocks--;
-			currentBlock = currentBlock->next;
-			j++;
-            if( currentBlock != NULL ){
-                printf("|");
-            }
-		}
-        while(spaceForText>0){
-            printf(" ");
-            spaceForText--;
+            currentBlock = currentBlock->next;
         }
-        printf("|");
-        printf(RESET);
-		currentArea = currentArea->next;
-		i++;
-        printf("\n");
+
+        if( requiredSpace <= AREA_WIDTH ){
+            printArea(blocks, blockSizes, free, baseLength);
+        }
+        else{
+            int space = baseLength[0];
+            int last = 0;
+            for( i = 1; i < blocks; i++ )
+            {
+                space += baseLength[i]+1;
+                if( space > AREA_WIDTH ){
+                    printArea(i - last, &blockSizes[last], &free[last], &baseLength[last]);
+                    last = i;
+                    space = baseLength[i];
+                }
+            }
+            printArea(blocks - last , &blockSizes[last], &free[last], &baseLength[last]);
+        }
+
+        currentArea = currentArea->next;
 	}
 }
