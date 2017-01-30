@@ -54,6 +54,31 @@ int main()
     //printf("%d\n", i[300]);
 
     p = realloc(p,1000);
+    int* y = malloc(250 * sizeof(double));
+
+    printBlocks();
+    printStats();
+
+    int* z = malloc(2*sizeof(char));
+
+    printBlocks();
+    printStats();
+
+    printf("\nFree:\n\n");
+
+    free(z);
+    free(alfabet);
+
+    printBlocks();
+    printStats();
+
+    free(y);
+    free(x);
+
+    printBlocks();
+    printStats();
+
+    free(p);
 
     printBlocks();
     printStats();
