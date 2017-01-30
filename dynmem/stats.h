@@ -7,5 +7,7 @@ void printBlocks();
 
 extern int areasCreated;
 extern long freeSpace;
+extern int blocksDivided;
+extern int blocksMerged;
 
 #endif
