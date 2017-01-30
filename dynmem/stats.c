@@ -40,11 +40,11 @@ void printBlocks()
 	while( currentArea != NULL )
 	{
         printf(BLU);
-        int h=53;
+        int h=47;
 		while(h--)
             printf(" ");
         printf("AREA %d", i);
-        h=53;
+        h=47;
 		while(h--)
             printf(" ");
         printf(RESET "\n");
@@ -72,17 +72,15 @@ void printBlocks()
             }
             snprintf(str, 12, " SIZE: %d", abs(currentBlock->size));
             printf(str);
-            h=((100*abs(currentBlock->size))/4016)-allBlocks*strlen(str)-1;
+            spaceForText-=strlen(str)+1;
+            h=((100*abs(currentBlock->size))/4096)-allBlocks*strlen(str)-1;
             if(spaceForText<h)
                 h=spaceForText;
-            if(h<0)
-                spaceForText-=strlen(str)+1;
-            else {
-                while(spaceForText>0 && h>0){
+            while(spaceForText>0 && h>0){
                 printf(" ");
                 --h;
                 --spaceForText;
-            }}
+            }
             allBlocks--;
 			currentBlock = currentBlock->next;
 			j++;
