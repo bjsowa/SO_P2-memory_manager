@@ -1,6 +1,10 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include <bits/wordsize.h>
+
+#define ALIGNMENT __WORDSIZE/8
+
 typedef struct block block;
 typedef struct area area;
 
@@ -8,18 +12,21 @@ struct block {
 	block* prev;
 	block* next;
 	ssize_t size;
-};
+} __attribute__ ((aligned(ALIGNMENT)));
 
 struct area {
 	area* prev;
 	area* next;
 	block* firstBlock;
 	size_t size;
-};
+} __attribute__ ((aligned(ALIGNMENT)));
 
 //rozmiary w bajtach struktur block i area
 static const size_t blockSize = sizeof(block);
 static const size_t areaSize = sizeof(area);
+
+//długość słowa maszynowego w bajtach (zwracane adresy muszą być podzielne przez tę wartość)
+static const int alignment = ALIGNMENT;
 
 //dzieli blok na dwa bloki, z których pierwszy ma rozmiar size a drugi dopełnia oryginalny
 //jeśli blok za drugim blokiem jest wolny to scala te dwa bloki

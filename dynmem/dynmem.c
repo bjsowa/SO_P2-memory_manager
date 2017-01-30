@@ -8,12 +8,11 @@
 #include "dynmem.h"
 #include "structs.h"
 
-
 void* malloc(size_t size)
 {
 	size_t pageSize = (size_t)getpagesize();
 
-	//printf("size to allocate: %d\n", (int)size);
+	size += (alignment - (size % alignment)) % alignment;
 
 	block* dest = sfree(size);
 
@@ -27,8 +26,6 @@ void* malloc(size_t size)
 			perror("mmap error\n");
 			return NULL;
 		}
-
-		//printf("size allocated: %d\n", (int)size1);
 
 		createArea(ptr, size1, size);
 
