@@ -6,5 +6,7 @@ void printStats();
 void printBlocks();
 
 extern int areasCreated;
+extern int blocksDivided;
+extern int blocksMerged;
 
 #endif
