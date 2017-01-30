@@ -1,21 +1,25 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "dynmem.h"
 #include "stats.h"
 
+typedef struct pair pair;
+
+struct pair {
+    double a;
+    double b;
+};
+
 int main()
 {
-    srand(time(NULL));
-
     printf("1) Tablica z alfabetem:\n");
     char* alfabet = malloc(51);
     strcpy(alfabet, "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z");
-    printf("%s\n", alfabet);
+    printf("%s\n\n", alfabet);
 
     printf("2) Tablica intow\n");
     int* x = malloc(5 * sizeof(int));
@@ -26,21 +30,31 @@ int main()
         *(x+five)=five;
         printf("%d ", *(x+five));
     }
-    printf("]\n");
+    printf("]\n\n");
 
-    printf("Malloc:\n");
+    printf("3) Tablica struktur \"pair\":\n");
+    pair* p = malloc(2 * sizeof(pair));
+    p->a=0.0;
+    p->b=1.0;
+    (p+1)->a=1.5;
+    (p+1)->b=2.5;
+    printf("[ (%lf, %lf) (%lf, %lf) ]\n\n",p->a,p->b,(p+1)->a,(p+1)->b);
 
-	printBlocks();
+    printf("\nMalloc:\n\n");
 
-	int* i = (int*) x;
-	i[300] = 5213;
-	x = realloc(x,500);
-	i = (int*) x;
-	printf("%d\n", i[300]);
+    printBlocks();
+    printStats();
 
-	printStats();
+    printf("\nRealloc:\n\n");
 
-    printf("Realloc:\n");
+    //int* i = (int*) x;
+    //i[300] = 5213;
+    x = realloc(x,4000);
+    //i = (int*) x;
+    //printf("%d\n", i[300]);
 
-	printBlocks();
+    p = realloc(p,1000);
+
+    printBlocks();
+    printStats();
 }
