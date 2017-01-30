@@ -62,19 +62,24 @@ void* realloc(void* ptr, size_t size)
 		if( blockPlace->next != NULL && blockPlace->next->size < 0 
 			&& blockPlace->size - blockPlace->next->size + blockSize >= size ){
 
+			takenSpace -= blockPlace->size; //STAT
+			freeSpace += blockSize + blockPlace->size; //STAT
+
 			blockPlace->size += blockSize - blockPlace->next->size;
 			blockPlace->next = blockPlace->next->next;
+
 			divideBlock(blockPlace,size);
 
 			return blockPlace;
 		}
+		else {
+			size_t oldSize = abs(blockPlace->size);
+			free(ptr);
+			void* newBlock = malloc(size);
+			memmove(newBlock, ptr, oldSize);
 
-		size_t oldSize = abs(blockPlace->size);
-		free(ptr);
-		void* newBlock = malloc(size);
-		memmove(newBlock, ptr, oldSize);
-
-		return newBlock;
+			return newBlock;
+		}
 	}
 
 	return ptr;
@@ -106,6 +111,8 @@ void free(void* ptr)
 			lastArea = freeArea->prev;
 			lastArea->next = NULL;
 		}
+
+
 
 		if( munmap(freeArea, freeArea->size) == -1) {
 			perror("munmap error");

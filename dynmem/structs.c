@@ -34,7 +34,11 @@ void divideBlock(void* ptr, size_t size)
     block* fullBlock = (block*) ptr;
     fullBlock->size = abs(fullBlock->size);
 
-    if( fullBlock->size == size ) return;
+    if( fullBlock->size == size ) {
+    	takenSpace += fullBlock->size; //STAT
+       	freeSpace -= fullBlock->size; //STAT
+    	return;
+    }
 
     block* freeBlock = (block*) (ptr + blockSize + size);
 
@@ -42,10 +46,20 @@ void divideBlock(void* ptr, size_t size)
         if( fullBlock->next != NULL && fullBlock->next->size < 0 ){
         	*freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
         	fullBlock->next = fullBlock->next->next;
+        	freeSpace -= size; //STAT
         }
-        else return;
+        else {
+        	takenSpace += fullBlock->size; //STAT
+        	freeSpace -= fullBlock->size; //STAT
+        	return;
+        }
     }
-    else *freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
+    else {
+    	*freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
+    	freeSpace -= size + blockSize; //STAT
+    }
+
+    takenSpace += size; //STAT
 
     freeBlock->prev = fullBlock;
     freeBlock->next = fullBlock->next;
@@ -92,7 +106,7 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		fullBlock->next = freeBlock;
 		freeBlock->prev = fullBlock;
 
-		freeSpace += freeBlock->size;
+		freeSpace += freeBlockSize - blockSize; //STAT
 	}
 	else 
 		*fullBlock = initializeBlock(asize - areaSize - blockSize,false);
@@ -109,7 +123,9 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		lastArea = newArea;
 	}
 
-	++areasCreated;
+	takenSpace += fullBlock->size; //STAT
+
+	++areasCreated; //STAT
 }
 
 block* sfree(size_t size)

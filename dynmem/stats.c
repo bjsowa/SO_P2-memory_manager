@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "stats.h"
 #include "structs.h"
@@ -14,7 +15,8 @@
 #define RESET "\x1B[0m"
 
 int areasCreated = 0;
-long freeSpace = 0;
+uint64_t takenSpace = 0;
+uint64_t freeSpace = 0;
 int blocksDivided = 0;
 int blocksMerged = 0;
 
@@ -30,6 +32,8 @@ void showAddress(void* ptr)
 void printStats()
 {
 	printf("Areas Created: %d\n", areasCreated);
+    printf("Taken Space: %" PRIu64 "\n", takenSpace);
+    printf("Free Space: %" PRIu64 "\n", freeSpace);
 	printf("Blocks Merged: %d\n", blocksMerged);
 	printf("Blocks Divided: %d\n", blocksDivided);       
 }
@@ -72,7 +76,7 @@ void printBlocks()
 				printf(RED);
             }
             snprintf(str, 12, " SIZE: %d", abs(currentBlock->size));
-            printf(str);
+            printf("%s", str);
             spaceForText-=strlen(str)+1;
             h=((100*abs(currentBlock->size))/4096)-allBlocks*strlen(str)-1;
             if(spaceForText<h)
