@@ -2,6 +2,7 @@
 #define STRUCTS_H
 
 #include <bits/wordsize.h>
+#include <pthread.h>
 
 //zwracane adresy muszą być wielokrotnością najdłuższego słowa
 #define ALIGNMENT __WORDSIZE/8
@@ -31,6 +32,8 @@ static const size_t areaSize = sizeof(area);
 
 //długość słowa maszynowego w bajtach (zwracane adresy muszą być podzielne przez tę wartość)
 static const int alignment = ALIGNMENT;
+
+extern pthread_mutex_t mutex;
 
 //dzieli blok na dwa bloki, z których pierwszy ma rozmiar size a drugi dopełnia oryginalny
 //jeśli blok za drugim blokiem jest wolny to scala te dwa bloki

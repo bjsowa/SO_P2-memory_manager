@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <sys/mman.h>
 #include <unistd.h>
 

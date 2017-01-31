@@ -10,13 +10,17 @@
 #include "structs.h"
 #include "stats.h"
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void* malloc(size_t size)
 {
 	if( size == 0 ) return NULL;
 
 	size += (alignment - (size % alignment)) % alignment;
-
 	size_t pageSize = (size_t)getpagesize();
+
+	pthread_mutex_lock(&mutex); //MUTEX
+
 	block* dest = sfree(size);
 
 	if( dest == NULL ){
@@ -32,12 +36,15 @@ void* malloc(size_t size)
 
 		createArea(ptr, size1, size);
 
+		pthread_mutex_unlock(&mutex); //MUTEX
 		return ptr + areaSize + blockSize;
 	}	
 	else {
 		divideBlock(dest, size);
 
 		void* ptr = (void*) dest;
+
+		pthread_mutex_unlock(&mutex); //MUTEX
 		return ptr + blockSize;
 	}
 }
@@ -49,16 +56,23 @@ void* calloc(size_t count, size_t size)
 
 void* realloc(void* ptr, size_t size)
 {
-	if( size == 0 ) return NULL;
+	if( size == 0 ) {
+		free(ptr);
+		return NULL;
+	}
 	size += (alignment - (size % alignment)) % alignment;
 
 	block* blockPlace = (block*)(ptr - blockSize);
+
+	pthread_mutex_lock(&mutex); //MUTEX	
 
 	if( size < blockPlace->size ){
 		takenSpace -= blockPlace->size; //STAT
 		freeSpace += blockPlace->size; //STAT
 
 		divideBlock(blockPlace,size);
+
+		pthread_mutex_unlock(&mutex); //MUTEX
 		return ptr;
 	}
 	else if( size > blockPlace->size ){
@@ -75,6 +89,7 @@ void* realloc(void* ptr, size_t size)
 
 			divideBlock(blockPlace,size);
 
+			pthread_mutex_unlock(&mutex); //MUTEX
 			return blockPlace+1;
 		}
 		else {
@@ -83,10 +98,12 @@ void* realloc(void* ptr, size_t size)
 			void* newBlock = malloc(size);
 			memmove(newBlock, ptr, oldSize);
 
+			pthread_mutex_unlock(&mutex); //MUTEX
 			return newBlock;
 		}
 	}
 
+	pthread_mutex_unlock(&mutex); //MUTEX
 	return ptr;
 }
 
@@ -99,6 +116,8 @@ void free(void* ptr)
 {
 	ptr -= blockSize;
 	block* freeBlock = (block*)ptr;
+
+	pthread_mutex_lock(&mutex); //MUTEX	
 	
 	takenSpace -= freeBlock->size; //STAT
 	freeSpace += freeBlock->size; //STAT
@@ -126,4 +145,6 @@ void free(void* ptr)
 			perror("munmap error");
 		}
 	}
+
+	pthread_mutex_unlock(&mutex); //MUTEX	
 }
