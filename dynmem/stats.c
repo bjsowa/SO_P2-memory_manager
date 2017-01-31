@@ -6,7 +6,7 @@
 #include "stats.h"
 #include "structs.h"
 
-#define AREA_WIDTH 100
+#define AREA_WIDTH 134
 
 #define RED "\x1B[7;31m"
 #define GRN   "\x1B[7;32m"
@@ -73,13 +73,12 @@ void printArea(int blocks, uint64_t* blockSizes, bool* free, int* baseLength)
         double minSpace = (double)spacesSum * spaceWidth;
 
         if( sizeSum >= minSpace + spaceWidth ){
-            spaces[i] = (sizeSum - minSpace) / spaceWidth;
+            spaces[i] = (sizeSum - minSpace - spaceWidth) / spaceWidth;
             remainingSpace -= spaces[i];
             spacesSum += spaces[i];
         }
         else spaces[i] = 0;
     }
-
     spaces[blocks-1] += remainingSpace;
 
     for(i = 0; i < blocks; i++)
@@ -107,12 +106,12 @@ void printArea(int blocks, uint64_t* blockSizes, bool* free, int* baseLength)
 
 void printBlocks()
 {
-	int i = 1;
+	int it = 1;
 	area* currentArea = firstArea;
 	while( currentArea != NULL )
 	{
         char areaStr[30];
-        snprintf(areaStr, 30, "AREA: %d SIZE: %d", i, (int)currentArea->size);
+        snprintf(areaStr, 30, "AREA: %d SIZE: %d", it, (int)currentArea->size);
 
         int offset = strlen(areaStr);
         offset = (AREA_WIDTH - offset + 1) / 2;
@@ -172,5 +171,6 @@ void printBlocks()
         }
 
         currentArea = currentArea->next;
+        ++it;
 	}
 }

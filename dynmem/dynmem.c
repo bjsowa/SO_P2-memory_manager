@@ -71,9 +71,11 @@ void* realloc(void* ptr, size_t size)
 			blockPlace->size += blockSize - blockPlace->next->size;
 			blockPlace->next = blockPlace->next->next;
 
+			if( blockPlace->next != NULL ) blockPlace->next->prev = blockPlace;
+
 			divideBlock(blockPlace,size);
 
-			return blockPlace;
+			return blockPlace+1;
 		}
 		else {
 			size_t oldSize = abs(blockPlace->size);
