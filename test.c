@@ -7,11 +7,12 @@
 #include <pthread.h>
 #include <time.h>
 
+#include "dynmem.h"
 #include "stats.h"
 #include "structs.h"
 
 #define ITERATIONS 10
-#define THREADS 2
+#define THREADS 1
 
 int makeRandom(int a, int b)
 {

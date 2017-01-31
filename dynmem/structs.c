@@ -117,22 +117,25 @@ void* mergeFreeBlocks(block* ptr)
 
         ++blocksMerged; //STAT
 	}
+
+	//if()
+
 	return ptr;
 }
 
-void createArea(void* ptr, size_t asize, size_t bsize)
+void createArea(void* ptr, size_t asize, size_t bsize, uint64_t offset)
 {
 	area a = initializeArea(asize);
 	
 	area* newArea = (area*) ptr;
 	*newArea = a;
 
-	block* fullBlock = (block*) (newArea + 1);
-	size_t freeBlockSize = asize - areaSize - blockSize - bsize;
+	block* fullBlock = (block*) (ptr + areaSize + offset);
+	size_t freeBlockSize = asize - areaSize - blockSize - bsize - offset;
 	if( freeBlockSize > blockSize ){
 		*fullBlock = initializeBlock(bsize,false);
 
-		block* freeBlock = (block*) (ptr + areaSize + blockSize + bsize);
+		block* freeBlock = (block*) (ptr + areaSize + blockSize + bsize + offset);
 		*freeBlock = initializeBlock(freeBlockSize - blockSize,true);
 
 		fullBlock->next = freeBlock;
@@ -143,7 +146,7 @@ void createArea(void* ptr, size_t asize, size_t bsize)
             maxFreeSpace=freeSpace;
 	}
 	else 
-		*fullBlock = initializeBlock(asize - areaSize - blockSize,false);
+		*fullBlock = initializeBlock(asize - areaSize - blockSize - offset,false);
 
 	newArea->firstBlock = fullBlock;
 
@@ -176,7 +179,7 @@ block* sfree(size_t size, int align)
 				if( align == alignment ) 
 					return currentBlock;
 				uint64_t offset = (uint64_t)(currentBlock+1);
-				offset = (align - (ptr % align)) % align;
+				offset = (align - (offset % align)) % align;
 				if( currentBlock->size + (ssize_t)offset <= -1 * (ssize_t)size )
 					return currentBlock;
 			}

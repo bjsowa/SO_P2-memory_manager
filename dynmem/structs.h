@@ -3,6 +3,8 @@
 
 #include <bits/wordsize.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 //zwracane adresy muszą być wielokrotnością najdłuższego słowa
 #define ALIGNMENT __WORDSIZE/8
@@ -25,6 +27,9 @@ struct area {
 	block* firstBlock;
 	size_t size;
 } __attribute__ ((aligned(ALIGNMENT)));
+
+block initializeBlock(size_t size, bool free);
+area initializeArea(size_t size);
 
 //rozmiary w bajtach struktur block i area
 static const size_t blockSize = sizeof(block);
@@ -52,7 +57,7 @@ void* mergeFreeBlocks(block* ptr);
 //tworzy blok długości bsize a za nim blok pusty dopełniający obszar, jeśli to możliwe
 //wpp po prostu tworzy blok zajmujący cały obszar
 //utworzony obszar dodaje do końca listy dwukierunkowej
-void createArea(void* ptr, size_t asize, size_t bsize);
+void createArea(void* ptr, size_t asize, size_t bsize, uint64_t offset);
 
 //przeszukuje obszary w poszukiwaniu wolnego bloku długości co najmniej size
 //jeśli taki istnieje, zwraca wskaźnik na niego, wpp zwraca NULL

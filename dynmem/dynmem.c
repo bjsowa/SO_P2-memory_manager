@@ -37,7 +37,7 @@ void* malloc(size_t size)
 			return NULL;
 		}
 
-		createArea(ptr, size1, size);
+		createArea(ptr, size1, size, 0);
 
 		pthread_mutex_unlock(&memoryMutex); //MUTEX
 		return ptr + areaSize + blockSize;
@@ -123,14 +123,61 @@ int posix_memalign(void** memptr, size_t align, size_t size)
 	if( align % alignment != 0 || (align & (align - 1)) != 0 )
 		return EINVAL;
 
+	pthread_mutex_lock(&memoryMutex); //MUTEX
+
+	size += (alignment - (size % alignment)) % alignment;
+
 	block* dest = sfree(size,align);
 
 	if( dest == NULL ){
+		size_t pageSize = (size_t)getpagesize();
+		uint64_t offset = (uint64_t)(areaSize);
+		offset = (align - (offset % align)) % align;
 
+		size_t size1 = size;
+		size1 += blockSize + areaSize + offset;
+		size1 += (pageSize - (size1 % pageSize)) % pageSize;
+
+		void* ptr = mmap(NULL, size1, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		if( ptr == MAP_FAILED ){
+			perror("mmap error");
+			return ENOMEM;
+		}
+
+		createArea(ptr, size1, size, offset);
+
+		*memptr = ptr + areaSize + blockSize + offset;		
 	}
 	else{
-		
+		uint64_t offset = (uint64_t)(dest+1);
+		offset = (align - (offset % align)) % align;
+
+		block oldBlock = *dest;
+
+		block* newBlock = (block*)((void*)dest + offset);
+		*newBlock = initializeBlock(-oldBlock.size - offset, true);
+
+		if( oldBlock.prev != NULL ){
+			newBlock->prev = oldBlock.prev;
+			oldBlock.prev->next = newBlock;
+
+			oldBlock.prev->size += offset;
+		}
+		else {
+			area* currentArea = (area*)((void*)newBlock - areaSize - offset);
+			currentArea->firstBlock = newBlock;
+		}
+
+		newBlock->next = oldBlock.next;
+
+		printBlocks();
+
+		divideBlock(newBlock, size);
+
+		*memptr = newBlock+1;
 	}
+
+	pthread_mutex_unlock(&memoryMutex); //MUTEX
 
 	return 0;
 }
