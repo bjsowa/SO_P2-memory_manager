@@ -103,11 +103,17 @@ void* realloc(void* ptr, size_t size)
 		}
 		else {
 			size_t oldSize = abs(blockPlace->size);
-			free(ptr);
-			void* newBlock = malloc(size);
-			memmove(newBlock, ptr, oldSize);
 
 			pthread_mutex_unlock(&memoryMutex); //MUTEX
+
+			void* newBlock = malloc(size);
+
+			pthread_mutex_lock(&memoryMutex); //MUTEX	
+			memmove(newBlock, ptr, oldSize);
+			pthread_mutex_unlock(&memoryMutex); //MUTEX
+
+			free(ptr);
+
 			return newBlock;
 		}
 	}
