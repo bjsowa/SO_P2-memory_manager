@@ -10,7 +10,7 @@
 #include "structs.h"
 #include "stats.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t memoryMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void* malloc(size_t size)
 {
@@ -19,7 +19,7 @@ void* malloc(size_t size)
 	size += (alignment - (size % alignment)) % alignment;
 	size_t pageSize = (size_t)getpagesize();
 
-	pthread_mutex_lock(&mutex); //MUTEX
+	pthread_mutex_lock(&memoryMutex); //MUTEX
 
 	block* dest = sfree(size);
 
@@ -36,7 +36,7 @@ void* malloc(size_t size)
 
 		createArea(ptr, size1, size);
 
-		pthread_mutex_unlock(&mutex); //MUTEX
+		pthread_mutex_unlock(&memoryMutex); //MUTEX
 		return ptr + areaSize + blockSize;
 	}	
 	else {
@@ -44,7 +44,7 @@ void* malloc(size_t size)
 
 		void* ptr = (void*) dest;
 
-		pthread_mutex_unlock(&mutex); //MUTEX
+		pthread_mutex_unlock(&memoryMutex); //MUTEX
 		return ptr + blockSize;
 	}
 }
@@ -56,6 +56,9 @@ void* calloc(size_t count, size_t size)
 
 void* realloc(void* ptr, size_t size)
 {
+	if( ptr == NULL )
+		return malloc(size);
+
 	if( size == 0 ) {
 		free(ptr);
 		return NULL;
@@ -64,7 +67,7 @@ void* realloc(void* ptr, size_t size)
 
 	block* blockPlace = (block*)(ptr - blockSize);
 
-	pthread_mutex_lock(&mutex); //MUTEX	
+	pthread_mutex_lock(&memoryMutex); //MUTEX	
 
 	if( size < blockPlace->size ){
 		takenSpace -= blockPlace->size; //STAT
@@ -72,7 +75,7 @@ void* realloc(void* ptr, size_t size)
 
 		divideBlock(blockPlace,size);
 
-		pthread_mutex_unlock(&mutex); //MUTEX
+		pthread_mutex_unlock(&memoryMutex); //MUTEX
 		return ptr;
 	}
 	else if( size > blockPlace->size ){
@@ -89,7 +92,7 @@ void* realloc(void* ptr, size_t size)
 
 			divideBlock(blockPlace,size);
 
-			pthread_mutex_unlock(&mutex); //MUTEX
+			pthread_mutex_unlock(&memoryMutex); //MUTEX
 			return blockPlace+1;
 		}
 		else {
@@ -98,12 +101,12 @@ void* realloc(void* ptr, size_t size)
 			void* newBlock = malloc(size);
 			memmove(newBlock, ptr, oldSize);
 
-			pthread_mutex_unlock(&mutex); //MUTEX
+			pthread_mutex_unlock(&memoryMutex); //MUTEX
 			return newBlock;
 		}
 	}
 
-	pthread_mutex_unlock(&mutex); //MUTEX
+	pthread_mutex_unlock(&memoryMutex); //MUTEX
 	return ptr;
 }
 
@@ -117,7 +120,7 @@ void free(void* ptr)
 	ptr -= blockSize;
 	block* freeBlock = (block*)ptr;
 
-	pthread_mutex_lock(&mutex); //MUTEX	
+	pthread_mutex_lock(&memoryMutex); //MUTEX	
 	
 	takenSpace -= freeBlock->size; //STAT
 	freeSpace += freeBlock->size; //STAT
@@ -138,6 +141,10 @@ void free(void* ptr)
 			lastArea = freeArea->prev;
 			lastArea->next = NULL;
 		}
+		else{
+			freeArea->prev->next = freeArea->next;
+			freeArea->next->prev = freeArea->prev;
+		}
 
 		freeSpace -= -freeBlock->size;
 
@@ -146,5 +153,5 @@ void free(void* ptr)
 		}
 	}
 
-	pthread_mutex_unlock(&mutex); //MUTEX	
+	pthread_mutex_unlock(&memoryMutex); //MUTEX	
 }

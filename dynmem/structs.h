@@ -33,7 +33,9 @@ static const size_t areaSize = sizeof(area);
 //długość słowa maszynowego w bajtach (zwracane adresy muszą być podzielne przez tę wartość)
 static const int alignment = ALIGNMENT;
 
-extern pthread_mutex_t mutex;
+//mutexy potrzebne do synchronizacji wątków
+extern pthread_mutex_t memoryMutex;
+extern pthread_mutex_t printingMutex;
 
 //dzieli blok na dwa bloki, z których pierwszy ma rozmiar size a drugi dopełnia oryginalny
 //jeśli blok za drugim blokiem jest wolny to scala te dwa bloki

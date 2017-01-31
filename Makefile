@@ -1,7 +1,7 @@
 CC=gcc
 INCLUDE=-I dynmem/
-LIBS=-L dynmem/ -Wl,-rpath=dynmem/ -ldynmem
-CFLAGS= -std=c99
+LIBS=-L dynmem/ -Wl,-rpath=dynmem/ -ldynmem -pthread
+CFLAGS= -std=c99 
 FLAGS= $(LIBS) $(INCLUDE) $(CFLAGS)
 
 all: dynmem test

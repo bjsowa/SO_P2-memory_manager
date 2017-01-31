@@ -2,11 +2,12 @@
 #include <string.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include "stats.h"
 #include "structs.h"
 
-#define AREA_WIDTH 134
+#define AREA_WIDTH 100
 
 #define RED "\x1B[7;31m"
 #define GRN   "\x1B[7;32m"
@@ -21,22 +22,33 @@ uint64_t freeSpace = 0;
 int blocksDivided = 0;
 int blocksMerged = 0;
 
+pthread_mutex_t printingMutex = PTHREAD_MUTEX_INITIALIZER;
+
 void showAddress(void* ptr)
 {
 	uintptr_t add = (uintptr_t)ptr;
 	uintptr_t page = add >> 12;
 	uintptr_t offset = add % 4096;
+
+    pthread_mutex_lock(&printingMutex); //MUTEX
+
 	printf("page: %" PRIuPTR "\n", page);
 	printf("offset: %" PRIuPTR "\n", offset); 
+
+    pthread_mutex_unlock(&printingMutex); //MUTEX  
 }
 
 void printStats()
 {
+    pthread_mutex_lock(&printingMutex); //MUTEX
+
 	printf("Areas Created: %d\n", areasCreated);
     printf("Taken Space: %" PRIu64 "\n", takenSpace);
     printf("Free Space: %" PRIu64 "\n", freeSpace);
 	printf("Blocks Merged: %d\n", blocksMerged);
-	printf("Blocks Divided: %d\n", blocksDivided);       
+	printf("Blocks Divided: %d\n", blocksDivided); 
+
+    pthread_mutex_unlock(&printingMutex); //MUTEX     
 }
 
 int numOfDigits(uint64_t n)
@@ -79,7 +91,22 @@ void printArea(int blocks, uint64_t* blockSizes, bool* free, int* baseLength)
         }
         else spaces[i] = 0;
     }
+    if( remainingSpace < 0 ){
+        for(i = blocks-1; i >= 0 && remainingSpace < 0; i--)
+        {
+            if( -remainingSpace >= spaces[i] ){
+                remainingSpace += spaces[i];
+                spaces[i] = 0;
+            }
+            else{
+                spaces[i] += remainingSpace;
+                remainingSpace = 0;
+            }
+        }
+    }
     spaces[blocks-1] += remainingSpace;
+
+
 
     for(i = 0; i < blocks; i++)
     {
@@ -106,6 +133,8 @@ void printArea(int blocks, uint64_t* blockSizes, bool* free, int* baseLength)
 
 void printBlocks()
 {
+    pthread_mutex_lock(&printingMutex); //MUTEX
+
 	int it = 1;
 	area* currentArea = firstArea;
 	while( currentArea != NULL )
@@ -173,4 +202,6 @@ void printBlocks()
         currentArea = currentArea->next;
         ++it;
 	}
+
+    pthread_mutex_unlock(&printingMutex); //MUTEX
 }
