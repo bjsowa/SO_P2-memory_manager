@@ -18,6 +18,7 @@
 
 int areasCreated = 0;
 int areasUnmapped = 0;
+int maxNumAreas = 0;
 
 uint64_t takenSpace = 0;
 uint64_t freeSpace = 0;
@@ -54,7 +55,8 @@ void printStats()
     pthread_mutex_lock(&printingMutex); //MUTEX
 
 	printf("Areas Created:\t\t\t%d\n", areasCreated);
-	printf("Areas Unmapped:\t\t\t%d\n\n", areasUnmapped);
+	printf("Areas Unmapped:\t\t\t%d\n", areasUnmapped);
+    printf("Max Number Of Areas:\t\t%d\n\n", maxNumAreas);
     printf("Taken Space:\t\t\t%" PRIu64 "\n", takenSpace);
     printf("Free Space:\t\t\t%" PRIu64 "\n\n", freeSpace);
     printf("Max Taken Space:\t\t%" PRIu64 "\n", maxTakenSpace);
@@ -221,6 +223,9 @@ void printBlocks()
         currentArea = currentArea->next;
         ++it;
 	}
+    it--;
+    if(it>maxNumAreas)
+        maxNumAreas=it;
 
     pthread_mutex_unlock(&printingMutex); //MUTEX
 }
