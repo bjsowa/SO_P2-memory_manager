@@ -56,7 +56,7 @@ void createArea(void* ptr, size_t asize, size_t bsize);
 
 //przeszukuje obszary w poszukiwaniu wolnego bloku długości co najmniej size
 //jeśli taki istnieje, zwraca wskaźnik na niego, wpp zwraca NULL
-block* sfree(size_t size);
+block* sfree(size_t size, int align);
 
 //wskaźniki na pierwszy i ostatni obszar 
 extern area* firstArea;

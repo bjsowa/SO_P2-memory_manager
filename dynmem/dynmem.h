@@ -15,7 +15,7 @@ void* calloc(size_t count, size_t size);
 void* realloc(void *ptr, size_t size);
 
 //to do
-int posix_memalign(void **memptr, size_t alignment, size_t size);
+int posix_memalign(void **memptr, size_t align, size_t size);
 
 //zmienia typ bloku na wolny i scala go z sąsiednimi wolnymi blokami (zob. mergeFreeBlocks)
 void free(void *ptr);

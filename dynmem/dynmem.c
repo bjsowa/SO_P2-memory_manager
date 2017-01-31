@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string.h>
+#include <asm-generic/errno-base.h>
 
 #include "dynmem.h"
 #include "structs.h"
@@ -21,7 +22,7 @@ void* malloc(size_t size)
 
 	pthread_mutex_lock(&memoryMutex); //MUTEX
 
-	block* dest = sfree(size);
+	block* dest = sfree(size,alignment);
 
 	if( dest == NULL ){
 		size_t size1 = size;
@@ -110,13 +111,28 @@ void* realloc(void* ptr, size_t size)
 	return ptr;
 }
 
-int posix_memalign(void** memptr, size_t alignment, size_t size)
+int posix_memalign(void** memptr, size_t align, size_t size)
 {
+	if( align % alignment != 0 || (align & (align - 1)) != 0 )
+		return EINVAL;
+
+	block* dest = sfree(size,align);
+
+	if( dest == NULL ){
+
+	}
+	else{
+		
+	}
+
+
 	return 0;
 }
 
 void free(void* ptr)
 {
+	if( ptr == NULL ) return;
+
 	ptr -= blockSize;
 	block* freeBlock = (block*)ptr;
 

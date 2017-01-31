@@ -137,7 +137,7 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 	++areasCreated; //STAT
 }
 
-block* sfree(size_t size)
+block* sfree(size_t size, int align)
 {
 	area* currentArea = firstArea;
 	while( currentArea != NULL )
@@ -145,8 +145,14 @@ block* sfree(size_t size)
 		block* currentBlock = currentArea->firstBlock;
 		while( currentBlock != NULL )
 		{
-			if( currentBlock->size <= -1 * (ssize_t)size )
-				return currentBlock;
+			if( currentBlock->size <= -1 * (ssize_t)size ){
+				if( align == alignment ) 
+					return currentBlock;
+				uint64_t offset = (uint64_t)(currentBlock+1);
+				offset = (align - (ptr % align)) % align;
+				if( currentBlock->size + (ssize_t)offset <= -1 * (ssize_t)size )
+					return currentBlock;
+			}
 			currentBlock = currentBlock->next;
 		}
 		currentArea = currentArea->next;
