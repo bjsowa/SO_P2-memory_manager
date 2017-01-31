@@ -37,7 +37,11 @@ void divideBlock(void* ptr, size_t size)
 
     if( fullBlock->size == size ) {
     	takenSpace += fullBlock->size; //STAT
+        if(takenSpace>maxTakenSpace)
+            maxTakenSpace=takenSpace;
        	freeSpace -= fullBlock->size; //STAT
+        if(freeSpace>maxFreeSpace)
+            maxFreeSpace=freeSpace;
     	return;
     }
 
@@ -48,21 +52,34 @@ void divideBlock(void* ptr, size_t size)
         	*freeBlock = initializeBlock( abs(fullBlock->next->size) + fullBlock->size - size, true );
         	fullBlock->next = fullBlock->next->next;
         	freeSpace -= size; //STAT
+            if(freeSpace>maxFreeSpace)
+                maxFreeSpace=freeSpace;
+
             ++blocksDivided; //STAT
         }
         else {
         	takenSpace += fullBlock->size; //STAT
+            if(takenSpace>maxTakenSpace)
+                maxTakenSpace=takenSpace;
         	freeSpace -= fullBlock->size; //STAT
+            if(freeSpace>maxFreeSpace)
+                maxFreeSpace=freeSpace;
+
         	return;
         }
     }
     else {
     	*freeBlock = initializeBlock( fullBlock->size - size - blockSize, true );
     	freeSpace -= size + blockSize; //STAT
+        if(freeSpace>maxFreeSpace)
+            maxFreeSpace=freeSpace;
+
         ++blocksDivided; //STAT
     }
 
     takenSpace += size; //STAT
+    if(takenSpace>maxTakenSpace)
+        maxTakenSpace=takenSpace;
 
     freeBlock->prev = fullBlock;
     freeBlock->next = fullBlock->next;
@@ -84,6 +101,9 @@ void* mergeFreeBlocks(block* ptr)
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
 
 		freeSpace += blockSize; //STAT
+        if(freeSpace>maxFreeSpace)
+            maxFreeSpace=freeSpace;
+
         ++blocksMerged; //STAT
 	}
 	if( ptr->next != NULL && ptr->next->size < 0 ){
@@ -92,6 +112,9 @@ void* mergeFreeBlocks(block* ptr)
 		if( ptr->next != NULL ) ptr->next->prev = ptr;
 
 		freeSpace += blockSize; //STAT
+        if(freeSpace>maxFreeSpace)
+            maxFreeSpace=freeSpace;
+
         ++blocksMerged; //STAT
 	}
 	return ptr;
@@ -116,6 +139,8 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 		freeBlock->prev = fullBlock;
 
 		freeSpace += freeBlockSize - blockSize; //STAT
+        if(freeSpace>maxFreeSpace)
+            maxFreeSpace=freeSpace;
 	}
 	else 
 		*fullBlock = initializeBlock(asize - areaSize - blockSize,false);
@@ -133,6 +158,8 @@ void createArea(void* ptr, size_t asize, size_t bsize)
 	}
 
 	takenSpace += fullBlock->size; //STAT
+    if(takenSpace>maxTakenSpace)
+        maxTakenSpace=takenSpace;
 
 	++areasCreated; //STAT
 }

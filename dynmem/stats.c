@@ -17,10 +17,21 @@
 #define RESET "\x1B[0m"
 
 int areasCreated = 0;
+int areasUnmapped = 0;
+
 uint64_t takenSpace = 0;
 uint64_t freeSpace = 0;
 int blocksDivided = 0;
 int blocksMerged = 0;
+
+uint64_t maxTakenSpace = 0;
+uint64_t maxFreeSpace = 0;
+
+int mallocCalls = 0;
+int callocCalls = 0;
+int reallocCalls = 0;
+int posix_memalignCalls = 0;
+int freeCalls = 0;
 
 pthread_mutex_t printingMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -42,11 +53,19 @@ void printStats()
 {
     pthread_mutex_lock(&printingMutex); //MUTEX
 
-	printf("Areas Created: %d\n", areasCreated);
-    printf("Taken Space: %" PRIu64 "\n", takenSpace);
-    printf("Free Space: %" PRIu64 "\n", freeSpace);
-	printf("Blocks Merged: %d\n", blocksMerged);
-	printf("Blocks Divided: %d\n", blocksDivided); 
+	printf("Areas Created:\t\t\t%d\n", areasCreated);
+	printf("Areas Unmapped:\t\t\t%d\n\n", areasUnmapped);
+    printf("Taken Space:\t\t\t%" PRIu64 "\n", takenSpace);
+    printf("Free Space:\t\t\t%" PRIu64 "\n\n", freeSpace);
+    printf("Max Taken Space:\t\t%" PRIu64 "\n", maxTakenSpace);
+    printf("Max Free Space:\t\t\t%" PRIu64 "\n\n", maxFreeSpace);
+	printf("Blocks Merged:\t\t\t%d\n", blocksMerged);
+	printf("Blocks Divided:\t\t\t%d\n\n", blocksDivided); 
+	printf("Mallocs Called:\t\t\t%d\n", mallocCalls);
+	printf("Callocs Called:\t\t\t%d\n", callocCalls);
+    printf("Reallocs Called:\t\t%d\n", reallocCalls); 
+    printf("Posix_memaligns Called:\t\t%d\n", posix_memalignCalls);
+    printf("Frees Called:\t\t\t%d\n", freeCalls);
 
     pthread_mutex_unlock(&printingMutex); //MUTEX     
 }

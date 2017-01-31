@@ -15,6 +15,8 @@ pthread_mutex_t memoryMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void* malloc(size_t size)
 {
+    ++mallocCalls; //STAT
+
 	if( size == 0 ) return NULL;
 
 	size += (alignment - (size % alignment)) % alignment;
@@ -52,11 +54,14 @@ void* malloc(size_t size)
 
 void* calloc(size_t count, size_t size)
 {
+    ++callocCalls; //STAT
+    --mallocCalls; //STAT
 	return malloc(count * size);
 }
 
 void* realloc(void* ptr, size_t size)
 {
+    ++reallocCalls; //STAT
 	if( ptr == NULL )
 		return malloc(size);
 
@@ -113,6 +118,8 @@ void* realloc(void* ptr, size_t size)
 
 int posix_memalign(void** memptr, size_t align, size_t size)
 {
+    ++posix_memalignCalls; //STAT
+	
 	if( align % alignment != 0 || (align & (align - 1)) != 0 )
 		return EINVAL;
 
@@ -125,13 +132,14 @@ int posix_memalign(void** memptr, size_t align, size_t size)
 		
 	}
 
-
 	return 0;
 }
 
 void free(void* ptr)
 {
-	if( ptr == NULL ) return;
+    ++freeCalls; //STAT
+
+    if(ptr == NULL) return;
 
 	ptr -= blockSize;
 	block* freeBlock = (block*)ptr;
@@ -167,6 +175,7 @@ void free(void* ptr)
 		if( munmap(freeArea, freeArea->size) == -1) {
 			perror("munmap error");
 		}
+        ++areasUnmapped;
 	}
 
 	pthread_mutex_unlock(&memoryMutex); //MUTEX	
