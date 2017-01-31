@@ -9,6 +9,7 @@ void printBlocks();
 
 extern int areasCreated;
 extern int areasUnmapped;
+extern int maxNumAreas;
 
 extern uint64_t takenSpace;
 extern uint64_t freeSpace;
